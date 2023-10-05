@@ -83,7 +83,7 @@ void neuralAdvection::truthSolve(List<scalar> mu_now, fileName folder)
     volVectorField& U = _U();
     volScalarField& f = _f();
     surfaceScalarField& phi = _phi();
-    
+
     /* Setting time parameters */
 
     instantList Times = runTime.times();
@@ -105,7 +105,7 @@ void neuralAdvection::truthSolve(List<scalar> mu_now, fileName folder)
 
     std::ofstream of(folder + name(counter) + "/" + runTime.timeName());
 
-    field.append(f);
+    field.append(f.clone());
 
     counter++;
     nextWrite += writeEvery;
@@ -122,7 +122,7 @@ void neuralAdvection::truthSolve(List<scalar> mu_now, fileName folder)
       #include "readTimeControls.H"
     	#include "CourantNo.H"
     	#include "setDeltaT.H"
-        
+
       runTime.setEndTime(finalTime);
       runTime++;
       Info << "Time = " << runTime.timeName() << nl << endl;
@@ -134,7 +134,7 @@ void neuralAdvection::truthSolve(List<scalar> mu_now, fileName folder)
 
       	for(label l=0; l < mesh.C().size(); l++)
       	{
-      		
+
           if(flagPrint==true)
           {
             // Use std::cerr instead of Info to avoid buffering at compile runtime
@@ -173,12 +173,12 @@ void neuralAdvection::truthSolve(List<scalar> mu_now, fileName folder)
 
           std::ofstream of(folder + name(counter) + "/" + runTime.timeName());
 
-          field.append(f);
+          field.append(f.clone());
 
           counter++;
           nextWrite += writeEvery;
           writeMu(mu_now);
-          
+
           mu_samples.conservativeResize(mu_samples.rows() + 1, mu_now.size() + 1);
           mu_samples(mu_samples.rows() - 1, 0) = atof(runTime.timeName().c_str());
 
@@ -191,7 +191,7 @@ void neuralAdvection::truthSolve(List<scalar> mu_now, fileName folder)
 
     if (system("mkdir -p ./ITHACAoutput/NUMPYsnapshots") == -1)
     {
-        Info << "Error :  " << strerror(errno) << endl; 
+        Info << "Error :  " << strerror(errno) << endl;
         exit(0);
     }
 
@@ -202,7 +202,7 @@ void neuralAdvection::truthSolve(List<scalar> mu_now, fileName folder)
     int Ns = field.size();
     int Nh = field[0].size();
 
-    Info << "Ns = " << Ns << endl << "Nh = " << Nh << endl; 
+    Info << "Ns = " << Ns << endl << "Nh = " << Nh << endl;
 
     Eigen::MatrixXd snapshot(Nh, 3);
 
@@ -210,7 +210,7 @@ void neuralAdvection::truthSolve(List<scalar> mu_now, fileName folder)
     volScalarField y("y",mesh.C().component(vector::Y));
 
     for (int j=0; j<=Ns-1; j++)
-    {  
+    {
 
       snapshot.col(0) = Foam2Eigen::field2Eigen(field[j]);
       snapshot.col(1) = Foam2Eigen::field2Eigen(x);
@@ -226,7 +226,7 @@ void neuralAdvection::truthSolve(List<scalar> mu_now, fileName folder)
     }
 
     // Resize to Unitary if not initialized by user (i.e. non-parametric problem)
-    
+
     if (mu.cols() == 0)
     {
         mu.resize(1, 1);
